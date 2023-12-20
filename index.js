@@ -71,15 +71,13 @@ async function sendTransaction(nonce) {
 
   const costFee = ethers.utils.formatEther(increasedGasPrice.mul(gasLimit));
   console.log(`Gas fee:`, costFee);
-  if (parseFloat(costFee) > 0.01) {
-    console.log(`Gas too many`);
-    return;
+  if (parseFloat(costFee) > config.maxGasFee) {
+    console.log(`Gas too many,maxGasFee:`, config.maxGasFee);
+    return false;
   }
-
+  console.log("正在打铭文数据的16进制数据", hexData);
   // 付费金额
   const payPrice = config.payPrice;
-
-  console.log("正在打铭文数据的16进制数据", hexData)
 
   const transaction = {
     to: address,
@@ -101,6 +99,7 @@ async function sendTransaction(nonce) {
   } catch (error) {
     console.error(`Error in transaction with nonce ${nonce}:`, error.message);
   }
+  return true;
 }
 
 // 发送多次交易
@@ -108,9 +107,11 @@ async function sendTransactions() {
   const currentNonce = await getCurrentNonce(wallet);
   const sleepTime = config.sleepTime;
 
-  for (let i = 0; i < config.repeatCount; i++) {
-    const gasPrice = await getGasPrice();
-    await sendTransaction(currentNonce + i, gasPrice);
+  for (let i = 0; i < config.repeatCount; ) {
+    // const gasPrice = await getGasPrice();
+    if (await sendTransaction(currentNonce + i)) {
+      i++;
+    }
     await sleep(sleepTime);
   }
 }
