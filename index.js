@@ -94,7 +94,7 @@ async function sendTransaction(nonce) {
   };
 
   try {
-    // const tx = await wallet.sendTransaction(transaction);
+    const tx = await wallet.sendTransaction(transaction);
     console.log(`Transaction with nonce ${nonce} hash:`, tx.hash);
   } catch (error) {
     console.error(`Error in transaction with nonce ${nonce}:`, error.message);
@@ -109,8 +109,12 @@ async function sendTransactions() {
 
   for (let i = 0; i < config.repeatCount; ) {
     // const gasPrice = await getGasPrice();
-    if (await sendTransaction(currentNonce + i)) {
-      i++;
+    try {
+      if (await sendTransaction(currentNonce + i)) {
+        i++;
+      }
+    } catch (error) {
+      console.error(`Error in sendTransaction`, error.message);
     }
     await sleep(sleepTime);
   }
